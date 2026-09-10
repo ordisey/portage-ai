@@ -1,0 +1,694 @@
+<title>Portage AI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#eef3f4;
+    --surface:#ffffff;
+    --surface-2:#e6edef;
+    --ink:#0f181d;
+    --ink-muted:#55686e;
+    --border:#d5e0e3;
+    --accent:#0e7c86;
+    --accent-ink:#ffffff;
+    --ok:#1e8e5a;
+    --ok-bg:#e3f3ea;
+    --warn:#b8720b;
+    --warn-bg:#fbf0dd;
+    --crit:#c0392b;
+    --crit-bg:#fbe7e4;
+    --shadow: 0 1px 2px rgba(15,24,29,.06), 0 6px 20px -8px rgba(15,24,29,.12);
+    --font-display:'Archivo',system-ui,sans-serif;
+    --font-body:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0a1215;
+      --surface:#121c21;
+      --surface-2:#17242a;
+      --ink:#e8eef0;
+      --ink-muted:#8ea0a6;
+      --border:#233238;
+      --accent:#3fc0cb;
+      --accent-ink:#06171a;
+      --ok:#39c584;
+      --ok-bg:#122a20;
+      --warn:#e3ab41;
+      --warn-bg:#2c2110;
+      --crit:#e8685a;
+      --crit-bg:#2c1613;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px -10px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a1215;
+    --surface:#121c21;
+    --surface-2:#17242a;
+    --ink:#e8eef0;
+    --ink-muted:#8ea0a6;
+    --border:#233238;
+    --accent:#3fc0cb;
+    --accent-ink:#06171a;
+    --ok:#39c584;
+    --ok-bg:#122a20;
+    --warn:#e3ab41;
+    --warn-bg:#2c2110;
+    --crit:#e8685a;
+    --crit-bg:#2c1613;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px -10px rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:14px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent); color:var(--accent-ink); }
+  button, textarea, input{ font-family:inherit; }
+  .mono{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+
+  .app{ max-width:1440px; margin:0 auto; padding:20px 20px 48px; }
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:24px;
+    flex-wrap:wrap; margin-bottom:18px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:38px; height:38px; border-radius:9px; background:var(--accent);
+    display:flex; align-items:center; justify-content:center; flex:none;
+    box-shadow:var(--shadow);
+  }
+  .brand-mark svg{ width:20px; height:20px; }
+  .brand-text h1{
+    font-family:var(--font-display); font-weight:800; font-size:20px; letter-spacing:-.01em;
+    margin:0; text-wrap:balance;
+  }
+  .brand-text p{ margin:2px 0 0; color:var(--ink-muted); font-size:12.5px; }
+  .stat-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .stat-tile{
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:8px 14px; min-width:108px; box-shadow:var(--shadow);
+  }
+  .stat-tile .n{ font-family:var(--font-mono); font-weight:500; font-size:19px; }
+  .stat-tile .n.accent{ color:var(--accent); }
+  .stat-tile .n.warn{ color:var(--warn); }
+  .stat-tile .l{ color:var(--ink-muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; margin-top:1px; }
+
+  /* ---------- console layout ---------- */
+  .console{
+    display:grid;
+    grid-template-columns: 292px minmax(0,1fr) 320px;
+    gap:14px;
+    align-items:start;
+  }
+  @media (max-width: 1040px){
+    .console{ grid-template-columns: 1fr; }
+  }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .panel-head{
+    padding:13px 16px 11px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .panel-head h2{ font-family:var(--font-display); font-size:12.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.06em; margin:0; color:var(--ink-muted); }
+
+  /* ---------- queue ---------- */
+  .queue-list{ list-style:none; margin:0; padding:6px; display:flex; flex-direction:column; gap:4px; max-height:74vh; overflow-y:auto;}
+  .queue-item{
+    width:100%; text-align:left; border:1px solid transparent; background:none;
+    border-radius:9px; padding:9px 10px; cursor:pointer; display:flex; flex-direction:column; gap:5px;
+    color:inherit;
+  }
+  .queue-item:hover{ background:var(--surface-2); }
+  .queue-item.active{ background:var(--surface-2); border-color:var(--accent); }
+  .qi-top{ display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .qi-id{ font-family:var(--font-mono); font-size:12.5px; font-weight:500; }
+  .qi-route{ font-size:12px; color:var(--ink-muted); }
+  .badge{
+    font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:100px;
+    text-transform:uppercase; letter-spacing:.03em; white-space:nowrap;
+  }
+  .badge-warn{ background:var(--warn-bg); color:var(--warn); }
+  .badge-ok{ background:var(--ok-bg); color:var(--ok); }
+  .badge-neutral{ background:var(--surface-2); color:var(--ink-muted); border:1px solid var(--border); }
+  .qi-agent{ font-size:11px; color:var(--ink-muted); display:flex; align-items:center; gap:5px; }
+  .agent-dot{ width:6px; height:6px; border-radius:50%; flex:none; }
+
+  /* ---------- workspace ---------- */
+  .workspace-inner{ padding:18px 20px 22px; }
+  .ws-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
+  .ws-title{ font-family:var(--font-display); font-size:17px; font-weight:700; margin:0 0 3px; text-wrap:balance;}
+  .ws-sub{ color:var(--ink-muted); font-size:12.5px; }
+  .ws-sub .mono{ color:var(--ink); }
+  .replay-btn{
+    background:var(--surface-2); border:1px solid var(--border); color:var(--ink);
+    font-size:12px; font-weight:500; padding:7px 12px; border-radius:8px; cursor:pointer;
+    display:flex; align-items:center; gap:6px; flex:none;
+  }
+  .replay-btn:hover{ border-color:var(--accent); color:var(--accent); }
+
+  .agent-tag{
+    display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600;
+    padding:4px 10px 4px 8px; border-radius:100px; border:1px solid var(--border); margin-bottom:16px;
+  }
+
+  .trace{ display:flex; flex-direction:column; gap:10px; }
+  .step{
+    display:grid; grid-template-columns:22px 1fr; gap:10px;
+    opacity:0; transform:translateY(4px);
+    animation: stepin .32s ease forwards;
+  }
+  @media (prefers-reduced-motion: reduce){ .step{ animation:none; opacity:1; transform:none; } }
+  @keyframes stepin{ to{ opacity:1; transform:none; } }
+  .step-glyph{
+    width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; margin-top:1px; flex:none;
+    background:var(--surface-2); color:var(--ink-muted); border:1px solid var(--border);
+  }
+  .step.tool .step-glyph{ color:var(--accent); border-color:var(--accent); }
+  .step-body{ padding-bottom:2px; border-left:1px solid transparent; }
+  .step-label{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-muted); font-weight:600; margin-bottom:2px; }
+  .step-text{ font-size:13.5px; }
+  .step-detail{
+    margin-top:6px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px;
+    padding:8px 10px; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-muted);
+    white-space:pre-wrap; line-height:1.5;
+  }
+
+  .decision-card{
+    margin-top:14px; border-radius:10px; padding:14px 15px; border:1px solid var(--border);
+  }
+  .decision-card.ok{ background:var(--ok-bg); border-color:color-mix(in srgb, var(--ok) 35%, var(--border)); }
+  .decision-card.warn{ background:var(--warn-bg); border-color:color-mix(in srgb, var(--warn) 35%, var(--border)); }
+  .decision-head{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:13px; margin-bottom:5px; }
+  .decision-card.ok .decision-head{ color:var(--ok); }
+  .decision-card.warn .decision-head{ color:var(--warn); }
+  .decision-body{ font-size:13px; color:var(--ink); }
+  .decision-note{ font-size:12px; color:var(--ink-muted); margin-top:6px; }
+
+  .options{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+  .option{
+    border:1px solid var(--border); border-radius:10px; padding:12px 13px; background:var(--surface);
+  }
+  .option-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:4px; flex-wrap:wrap;}
+  .option-name{ font-weight:600; font-size:13px; }
+  .option-figs{ font-family:var(--font-mono); font-size:12.5px; color:var(--ink-muted); }
+  .option-desc{ font-size:12.5px; color:var(--ink-muted); margin-bottom:10px; }
+  .btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn{
+    border:none; border-radius:8px; padding:8px 13px; font-size:12.5px; font-weight:600; cursor:pointer;
+  }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-primary:hover{ filter:brightness(1.06); }
+  .btn-ghost{ background:var(--surface-2); color:var(--ink); border:1px solid var(--border); }
+  .btn-ghost:hover{ border-color:var(--ink-muted); }
+  .btn:disabled{ opacity:.55; cursor:default; }
+  .approved-note{ font-size:12px; color:var(--ok); font-weight:600; display:flex; align-items:center; gap:6px; margin-top:2px; }
+
+  .draft-box{
+    margin-top:14px; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--surface);
+  }
+  .draft-box-head{ padding:8px 12px; background:var(--surface-2); font-size:11px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--ink-muted); font-weight:600; border-bottom:1px solid var(--border);}
+  .draft-box textarea{
+    width:100%; border:none; resize:vertical; min-height:108px; padding:12px; font-size:13px;
+    color:var(--ink); background:transparent; display:block;
+  }
+  .draft-box textarea:focus{ outline:2px solid var(--accent); outline-offset:-2px; }
+
+  .timeline{ display:flex; flex-direction:column; gap:0; margin-top:6px; }
+  .tl-item{ display:grid; grid-template-columns:70px 20px 1fr; gap:10px; }
+  .tl-when{ font-family:var(--font-mono); font-size:11px; color:var(--ink-muted); padding-top:2px; }
+  .tl-rail{ display:flex; flex-direction:column; align-items:center; }
+  .tl-dot{ width:9px; height:9px; border-radius:50%; margin-top:4px; flex:none; }
+  .tl-line{ flex:1; width:1px; background:var(--border); margin-top:2px; }
+  .tl-body{ padding-bottom:16px; }
+  .tl-title{ font-size:13px; font-weight:600; }
+  .tl-desc{ font-size:12px; color:var(--ink-muted); margin-top:2px; }
+
+  /* ---------- sidebar ---------- */
+  .sidebar-stack{ display:flex; flex-direction:column; gap:14px; }
+  .log-list{ list-style:none; margin:0; padding:10px 14px 14px; display:flex; flex-direction:column; gap:12px; max-height:280px; overflow-y:auto;}
+  .log-item{ display:grid; grid-template-columns:16px 1fr; gap:8px; }
+  .log-dot{ width:16px; height:16px; border-radius:5px; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+  .log-text{ font-size:12.5px; }
+  .log-time{ font-size:11px; color:var(--ink-muted); font-family:var(--font-mono); margin-top:1px; }
+
+  .guardrails{ padding:12px 16px 16px; display:flex; flex-direction:column; gap:16px; }
+  .gr-row label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:500; margin-bottom:6px; }
+  .gr-row .gr-val{ font-family:var(--font-mono); color:var(--accent); }
+  .gr-row input[type=range]{ width:100%; accent-color:var(--accent); }
+  .gr-hint{ font-size:11px; color:var(--ink-muted); margin-top:4px; }
+  .gr-fixed{
+    font-size:11.5px; color:var(--ink-muted); background:var(--surface-2); border:1px solid var(--border);
+    border-radius:8px; padding:8px 10px; font-style:italic;
+  }
+
+  .footnote{
+    margin-top:18px; font-size:11.5px; color:var(--ink-muted); text-align:center; padding:0 10px;
+  }
+  .footnote a{ color:var(--accent); }
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8L12 3L21 8V16L12 21L3 16V8Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M3 8L12 13L21 8" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M12 13V21" stroke="white" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Portage AI</h1>
+        <p>Agentic operations console — freight &amp; logistics</p>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-tile"><div class="n">6</div><div class="l">Active shipments</div></div>
+      <div class="stat-tile"><div class="n warn" id="stat-pending">3</div><div class="l">Awaiting your approval</div></div>
+      <div class="stat-tile"><div class="n accent">2</div><div class="l">Auto-resolved · 24h</div></div>
+      <div class="stat-tile"><div class="n">3</div><div class="l">Agents running</div></div>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="panel">
+      <div class="panel-head"><h2>Shipment queue</h2></div>
+      <ul class="queue-list" id="queue-list"></ul>
+    </div>
+
+    <div class="panel">
+      <div class="workspace-inner" id="workspace"></div>
+    </div>
+
+    <div class="sidebar-stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Agent activity log</h2></div>
+        <ul class="log-list" id="log-list"></ul>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Guardrails</h2></div>
+        <div class="guardrails">
+          <div class="gr-row">
+            <label>Lane Agent — auto-book rate variance <span class="gr-val" id="gr-lane-val">15%</span></label>
+            <input type="range" min="5" max="30" value="15" id="gr-lane">
+            <div class="gr-hint">Above this, Lane Agent holds for approval instead of booking.</div>
+          </div>
+          <div class="gr-row">
+            <label>Watch Agent — auto-remediate cost cap <span class="gr-val" id="gr-watch-val">$250</span></label>
+            <input type="range" min="50" max="1000" step="10" value="250" id="gr-watch">
+            <div class="gr-hint">Above this, exceptions route to the approval queue.</div>
+          </div>
+          <div class="gr-row">
+            <label>Doc Agent — discrepancy materiality <span class="gr-val" id="gr-doc-val">1.5%</span></label>
+            <input type="range" min="0.5" max="5" step="0.1" value="1.5" id="gr-doc">
+            <div class="gr-hint">Above this variance, a draft update needs human sign-off.</div>
+          </div>
+          <div class="gr-fixed">Customs / regulatory document changes always require human sign-off, regardless of threshold.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">Tool calls shown here (rates, tracking, extraction, booking) are simulated with realistic fixture data — see <span class="mono">docs/AGENTS.md</span> in the repo for what each one maps to in production.</p>
+</div>
+
+<script>
+(function(){
+  const AGENTS = {
+    lane:  { name:'Lane Agent',        color:'var(--accent)', short:'Lane'  },
+    watch: { name:'Watch Agent',       color:'var(--warn)',   short:'Watch' },
+    doc:   { name:'Doc & Comms Agent', color:'#7c5cbf',       short:'Doc'   },
+  };
+
+  const shipments = [
+    {
+      id:'PTG-10467', agent:'watch', status:'pending',
+      route:'Laem Chabang → Jebel Ali', cargo:'1× 40HC · machinery parts',
+      queueNote:'Customs hold · 14h and counting',
+      trace:[
+        {type:'plan', label:'Trigger', text:'Customs hold flagged at Jebel Ali on an active in-transit shipment.'},
+        {type:'tool', label:'Tool call', text:'get_tracking_events(shipment="PTG-10467")',
+          detail:'→ hold_reason: "documentation review — HS code mismatch"\n→ held_since: 14h 20m ago\n→ account_sla: 48h max transit-hold (contractual)'},
+        {type:'tool', label:'Tool call', text:'retrieve(customs_playbook, query="HS code mismatch — Jebel Ali")',
+          detail:'→ recourse A: submit corrected HS code + amended commercial invoice (courier), avg resolution 4–8h\n→ recourse B: no action — standard customs queue, avg resolution 30–40h'},
+        {type:'tool', label:'Tool call', text:'estimate_cost_impact(both options)',
+          detail:'→ Option A: +$340 (courier + amendment fee), ETA +6h vs. original\n→ Option B: $0, ETA +36h vs. original — breaches the 48h SLA on this lane\'s prior 2 shipments'},
+        {type:'plan', label:'Guardrail check', text:'Any customs paperwork amendment requires human sign-off, regardless of the cost-impact threshold.'},
+      ],
+      decision:{ kind:'escalate',
+        headline:'Two remediation options — needs your call',
+        body:'Recommendation: Option A. It costs $340 but keeps this account inside its contractual transit-hold SLA; Option B is free but this lane has breached SLA on both of its last two holds.',
+        options:[
+          {name:'Option A — Expedite amendment', figs:'+$340 · ETA +6h', desc:'Courier the corrected HS code and amended commercial invoice to the customs broker today.'},
+          {name:'Option B — Standard queue', figs:'$0 · ETA +36h', desc:'No action — let the hold clear through the standard review queue. Likely SLA breach on this account.'},
+        ]
+      }
+    },
+    {
+      id:'PTG-10488', agent:'lane', status:'pending',
+      route:'Ho Chi Minh City → Los Angeles', cargo:'1× 20GP reefer · seafood, −18°C',
+      queueNote:'Rate 26% above lane average',
+      trace:[
+        {type:'plan', label:'Trigger', text:'New shipment request received from account "Meridian Foods" — reefer, temperature-controlled.'},
+        {type:'tool', label:'Tool call', text:'lookup_carrier_rates(lane="HCMC–LAX", equip="20GP reefer")',
+          detail:'→ Pacific Reefer Co: $6,450/cntr · 19 days\n→ (no other reefer-certified carrier has capacity this week — regional reefer shortage)'},
+        {type:'tool', label:'Tool call', text:'check_carrier_compliance(carrier="Pacific Reefer Co")',
+          detail:'→ insurance: current · cold-chain cert: current · PASS'},
+        {type:'plan', label:'Rank & compare', text:'Only one compliant option. Rate vs. this lane\'s trailing 90-day average ($5,120/cntr): +26%.'},
+        {type:'plan', label:'Guardrail check', text:'Rate variance (26%) exceeds the auto-book threshold (15%) — holding for approval instead of booking automatically.'},
+      ],
+      decision:{ kind:'escalate',
+        headline:'Rate is above auto-book threshold',
+        body:'Only one compliant reefer carrier has capacity this week due to a regional shortage. $6,450/cntr is 26% above this lane\'s trailing average of $5,120.',
+        actions:[
+          {label:'Approve booking at $6,450/cntr', style:'primary', outcome:'Booked with Pacific Reefer Co. Confirmation PTG-10488-CNF issued.'},
+          {label:'Reject — hold for manual sourcing', style:'ghost', outcome:'Held. Flagged to the ops desk for manual carrier sourcing.'},
+        ]
+      }
+    },
+    {
+      id:'PTG-10455', agent:'doc', status:'pending',
+      route:'Tanjung Pelepas → Melbourne', cargo:'1× 40HC · furniture',
+      queueNote:'Weight variance on POD · draft ready',
+      trace:[
+        {type:'plan', label:'Trigger', text:'Proof of Delivery (POD) uploaded by the destination agent.'},
+        {type:'tool', label:'Tool call', text:'extract_document_fields(doc="POD-10455.pdf")',
+          detail:'→ delivered_weight: 18,240 kg\n→ delivered_pieces: 214 / 214\n→ condition: no exceptions noted'},
+        {type:'tool', label:'Tool call', text:'diff_against_record(shipment="PTG-10455")',
+          detail:'→ manifest_weight: 17,900 kg\n→ variance: +340 kg (+1.9%) — above the 1.5% materiality threshold'},
+        {type:'plan', label:'Guardrail check', text:'Discrepancy exceeds materiality threshold → flag it, and hold any customer-facing message for approval before sending.'},
+        {type:'tool', label:'Tool call', text:'draft_customer_update(tone="Halcyon Distribution — standard")',
+          detail:'→ draft generated, see below'},
+      ],
+      decision:{ kind:'draft',
+        headline:'Discrepancy flagged — draft ready to review',
+        body:'Delivered weight is 1.9% over the manifest. Below the level that usually indicates mis-scanning, but above materiality — flagged rather than silently accepted.',
+        draft:'Hi team,\n\nYour shipment (PTG-10455, Tanjung Pelepas → Melbourne) was delivered in full — 214/214 pieces, no condition exceptions noted.\n\nOne note for your records: delivered weight was recorded at 18,240 kg vs. 17,900 kg on the original manifest (+1.9%). This is a minor variance and no action is needed unless you\'d like to dispute it — just reply to this email.\n\n— Portage AI, on behalf of your logistics team'
+      }
+    },
+    {
+      id:'PTG-10482', agent:'lane', status:'auto',
+      route:'Singapore → Rotterdam', cargo:'2× 40HC · consumer electronics',
+      queueNote:'Auto-booked · Meridian Line',
+      trace:[
+        {type:'plan', label:'Trigger', text:'New shipment request received from account "Halcyon Distribution".'},
+        {type:'tool', label:'Tool call', text:'lookup_carrier_rates(lane="SIN–RTM", equip="40HC")',
+          detail:'→ Meridian Line: $4,180/cntr · 27 days\n→ Apex Freight: $3,960/cntr · 29 days\n→ Nautica Cargo: $3,790/cntr · 31 days'},
+        {type:'tool', label:'Tool call', text:'check_carrier_compliance(all 3 candidates)',
+          detail:'→ Meridian Line: PASS\n→ Apex Freight: PASS\n→ Nautica Cargo: FAIL — insurance certificate expired 4 days ago'},
+        {type:'tool', label:'Tool call', text:'retrieve(account_routing_rules, account="Halcyon Distribution")',
+          detail:'→ rule: electronics shipments require transit ≤ 28 days (theft/damage exposure window)'},
+        {type:'plan', label:'Rank & compare', text:'Apex is cheaper but excluded on transit time. Meridian meets the 28-day rule; rate variance vs. lane average is +2.1%, within the 15% threshold.'},
+      ],
+      decision:{ kind:'auto',
+        headline:'Booked automatically',
+        body:'Meridian Line selected — only compliant carrier meeting the account\'s 28-day transit rule, and within the rate-variance guardrail. Confirmation PTG-10482-CNF issued.',
+      }
+    },
+    {
+      id:'PTG-10440', agent:'watch', status:'auto',
+      route:'Tanjung Pelepas → Fremantle', cargo:'1× 20GP · general goods',
+      queueNote:'Auto-resolved · rerouted',
+      trace:[
+        {type:'plan', label:'Trigger', text:'Missed transshipment window at Tanjung Pelepas — vessel rolled to the next sailing.'},
+        {type:'tool', label:'Tool call', text:'lookup_alt_routing(shipment="PTG-10440")',
+          detail:'→ Option A: wait for next direct sailing, ETA +2 days\n→ Option B: reroute via Singapore transshipment, ETA unchanged'},
+        {type:'tool', label:'Tool call', text:'estimate_cost_impact(reroute_via_singapore)',
+          detail:'→ +$85 handling fee · +0 days vs. original ETA'},
+        {type:'plan', label:'Guardrail check', text:'Cost ($85) and delay (0 days) are within the auto-remediate threshold ($250 / same-day) — executing directly.'},
+        {type:'tool', label:'Tool call', text:'execute_remediation(reroute_via_singapore) → notify_customer(routine)',
+          detail:'→ rebooked via Singapore transshipment\n→ routine "on schedule" update sent to customer automatically'},
+      ],
+      decision:{ kind:'auto',
+        headline:'Rerouted automatically',
+        body:'Rerouted via Singapore transshipment for +$85. No change to the customer\'s expected delivery date — a routine update was sent automatically.',
+      }
+    },
+    {
+      id:'PTG-10421', agent:'lane', status:'done',
+      route:'Singapore → Hamburg', cargo:'2× 40HC · apparel',
+      queueNote:'Delivered · closed out',
+      timeline:[
+        {when:'Day 1', agent:'lane',  title:'Booked automatically', desc:'Meridian Line, within rate-variance guardrail.'},
+        {when:'Day 9', agent:'watch', title:'Minor congestion delay — auto-resolved', desc:'Rerouted at +$60, no change to ETA.'},
+        {when:'Day 24', agent:'doc',  title:'POD reconciled — no discrepancy', desc:'Weight, pieces, and condition all matched manifest.'},
+        {when:'Day 24', agent:'doc',  title:'"Delivered" update sent to customer', desc:'Sent automatically — no discrepancy, routine notification.'},
+        {when:'Day 24', agent:null,  title:'Shipment closed', desc:'No open actions. Full trace retained in the audit log.'},
+      ]
+    },
+  ];
+
+  let activeId = 'PTG-10467';
+  let logEntries = [
+    {agent:'watch', text:'PTG-10440 rerouted automatically via Singapore (+$85, +0 days) — within guardrail.', when:'41m ago'},
+    {agent:'doc',   text:'PTG-10421 "delivered" update sent automatically — POD matched manifest.', when:'2h ago'},
+    {agent:'lane',  text:'PTG-10482 booked automatically with Meridian Line — within rate-variance guardrail.', when:'3h ago'},
+    {agent:'watch', text:'PTG-10467 customs hold detected — escalated to approval queue.', when:'14h ago'},
+  ];
+
+  const glyph = a => a === 'lane' ? 'L' : a === 'watch' ? 'W' : a === 'doc' ? 'D' : '•';
+
+  function statusBadge(s){
+    if(s.status==='pending') return '<span class="badge badge-warn">Needs approval</span>';
+    if(s.status==='auto') return '<span class="badge badge-ok">Auto-resolved</span>';
+    return '<span class="badge badge-neutral">Closed</span>';
+  }
+
+  function renderQueue(){
+    const order = {pending:0, auto:1, done:2};
+    const sorted = [...shipments].sort((a,b)=> order[a.status]-order[b.status]);
+    const el = document.getElementById('queue-list');
+    el.innerHTML = sorted.map(s => `
+      <li>
+        <button class="queue-item ${s.id===activeId?'active':''}" data-id="${s.id}">
+          <div class="qi-top">
+            <span class="qi-id mono">${s.id}</span>
+            ${statusBadge(s)}
+          </div>
+          <div class="qi-route">${s.route}</div>
+          <div class="qi-agent">
+            <span class="agent-dot" style="background:${AGENTS[s.agent].color}"></span>
+            ${AGENTS[s.agent].name} · ${s.queueNote}
+          </div>
+        </button>
+      </li>
+    `).join('');
+    el.querySelectorAll('.queue-item').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ activeId = btn.dataset.id; renderQueue(); renderWorkspace(true); });
+    });
+  }
+
+  function stepHtml(step, i){
+    const glyphText = step.type==='tool' ? '⚙' : step.type==='plan' ? '▸' : '✓';
+    return `
+      <div class="step ${step.type}" style="animation-delay:${i*90}ms">
+        <div class="step-glyph">${glyphText}</div>
+        <div class="step-body">
+          <div class="step-label">${step.label}</div>
+          <div class="step-text">${step.text}</div>
+          ${step.detail ? `<div class="step-detail">${step.detail}</div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function addLog(agent, text){
+    logEntries.unshift({agent, text, when:'just now'});
+    renderLog();
+    const pendingCount = shipments.filter(s=>s.status==='pending').length;
+    document.getElementById('stat-pending').textContent = pendingCount;
+  }
+
+  function renderLog(){
+    document.getElementById('log-list').innerHTML = logEntries.slice(0,10).map(l => `
+      <li class="log-item">
+        <div class="log-dot" style="background:${AGENTS[l.agent].color}22;">
+          <span class="mono" style="font-size:9px;font-weight:700;color:${AGENTS[l.agent].color}">${glyph(l.agent)}</span>
+        </div>
+        <div>
+          <div class="log-text">${l.text}</div>
+          <div class="log-time">${l.when}</div>
+        </div>
+      </li>`).join('');
+  }
+
+  function resolveShipment(id, outcomeText){
+    const s = shipments.find(x=>x.id===id);
+    s.status = 'auto';
+    s.queueNote = 'Resolved · approved by you';
+    addLog(s.agent, `${id} — ${outcomeText}`);
+    renderQueue();
+    renderWorkspace(false);
+  }
+
+  function renderDecision(s){
+    const d = s.decision;
+    if(!d) return '';
+    if(d.kind==='auto'){
+      return `
+        <div class="decision-card ok">
+          <div class="decision-head">✓ ${d.headline}</div>
+          <div class="decision-body">${d.body}</div>
+        </div>`;
+    }
+    if(d.kind==='escalate' && d.options){
+      return `
+        <div class="decision-card warn">
+          <div class="decision-head">⏸ ${d.headline}</div>
+          <div class="decision-body">${d.body}</div>
+        </div>
+        <div class="options">
+          ${d.options.map((o,i)=>`
+            <div class="option">
+              <div class="option-top"><span class="option-name">${o.name}</span><span class="option-figs mono">${o.figs}</span></div>
+              <div class="option-desc">${o.desc}</div>
+              <div class="btn-row" id="opt-actions-${i}">
+                <button class="btn btn-primary" data-opt="${i}">Approve this option</button>
+              </div>
+            </div>`).join('')}
+        </div>`;
+    }
+    if(d.kind==='escalate' && d.actions){
+      return `
+        <div class="decision-card warn">
+          <div class="decision-head">⏸ ${d.headline}</div>
+          <div class="decision-body">${d.body}</div>
+        </div>
+        <div class="btn-row" id="act-actions" style="margin-top:12px;">
+          ${d.actions.map((a,i)=>`<button class="btn btn-${a.style}" data-act="${i}">${a.label}</button>`).join('')}
+        </div>`;
+    }
+    if(d.kind==='draft'){
+      return `
+        <div class="decision-card warn">
+          <div class="decision-head">⏸ ${d.headline}</div>
+          <div class="decision-body">${d.body}</div>
+        </div>
+        <div class="draft-box">
+          <div class="draft-box-head">Drafted customer update — editable before sending</div>
+          <textarea id="draft-text">${d.draft}</textarea>
+        </div>
+        <div class="btn-row" style="margin-top:10px;" id="draft-actions">
+          <button class="btn btn-primary" id="send-draft-btn">Send update</button>
+          <button class="btn btn-ghost" id="edit-draft-btn">Keep editing</button>
+        </div>`;
+    }
+    return '';
+  }
+
+  function renderTimeline(s){
+    return `<div class="timeline">${s.timeline.map((t,i)=>`
+      <div class="tl-item">
+        <div class="tl-when">${t.when}</div>
+        <div class="tl-rail">
+          <div class="tl-dot" style="background:${t.agent?AGENTS[t.agent].color:'var(--ink-muted)'}"></div>
+          ${i<s.timeline.length-1 ? '<div class="tl-line"></div>' : ''}
+        </div>
+        <div class="tl-body">
+          <div class="tl-title">${t.title}</div>
+          <div class="tl-desc">${t.desc}</div>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+
+  function renderWorkspace(animate){
+    const s = shipments.find(x=>x.id===activeId);
+    const ws = document.getElementById('workspace');
+    const agentMeta = AGENTS[s.agent];
+
+    if(s.status==='done'){
+      ws.innerHTML = `
+        <div class="ws-head">
+          <div>
+            <h3 class="ws-title">${s.id} <span style="color:var(--ink-muted);font-weight:500;">— ${s.route}</span></h3>
+            <div class="ws-sub">${s.cargo}</div>
+          </div>
+        </div>
+        <span class="agent-tag" style="border-color:var(--border);color:var(--ink-muted)">Full lifecycle · 3 agents</span>
+        ${renderTimeline(s)}`;
+      return;
+    }
+
+    const stepsHtml = s.trace.map((st,i)=>stepHtml(st,i)).join('');
+    ws.innerHTML = `
+      <div class="ws-head">
+        <div>
+          <h3 class="ws-title">${s.id} <span style="color:var(--ink-muted);font-weight:500;">— ${s.route}</span></h3>
+          <div class="ws-sub"><span class="mono">${s.cargo}</span></div>
+        </div>
+        <button class="replay-btn" id="replay-btn">↻ Replay trace</button>
+      </div>
+      <span class="agent-tag" style="color:${agentMeta.color};border-color:${agentMeta.color}55;background:${agentMeta.color}14;">
+        <span class="agent-dot" style="background:${agentMeta.color}"></span>${agentMeta.name}
+      </span>
+      <div class="trace" id="trace-el">${stepsHtml}</div>
+      ${renderDecision(s)}
+    `;
+
+    if(!animate){
+      ws.querySelectorAll('.step').forEach(el=> el.style.animationDelay = '0ms');
+    }
+
+    document.getElementById('replay-btn').addEventListener('click', ()=> renderWorkspace(true));
+
+    if(s.decision){
+      if(s.decision.kind==='escalate' && s.decision.options){
+        ws.querySelectorAll('[data-opt]').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            const opt = s.decision.options[+btn.dataset.opt];
+            const row = btn.closest('.option').querySelector('.btn-row');
+            row.innerHTML = `<span class="approved-note">✓ Approved by you — ${opt.figs}</span>`;
+            resolveShipment(s.id, `you approved "${opt.name}" (${opt.figs}).`);
+          });
+        });
+      }
+      if(s.decision.kind==='escalate' && s.decision.actions){
+        ws.querySelectorAll('[data-act]').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            const act = s.decision.actions[+btn.dataset.act];
+            document.getElementById('act-actions').innerHTML = `<span class="approved-note">✓ ${act.outcome}</span>`;
+            resolveShipment(s.id, act.outcome);
+          });
+        });
+      }
+      if(s.decision.kind==='draft'){
+        document.getElementById('send-draft-btn').addEventListener('click', ()=>{
+          document.getElementById('draft-actions').innerHTML = `<span class="approved-note">✓ Sent to customer</span>`;
+          document.getElementById('draft-text').setAttribute('readonly','true');
+          resolveShipment(s.id, 'drafted update reviewed and sent to the customer.');
+        });
+        document.getElementById('edit-draft-btn').addEventListener('click', ()=>{
+          document.getElementById('draft-text').focus();
+        });
+      }
+    }
+  }
+
+  function wireGuardrails(){
+    const laneR = document.getElementById('gr-lane'), laneV = document.getElementById('gr-lane-val');
+    laneR.addEventListener('input', ()=> laneV.textContent = laneR.value + '%');
+    const watchR = document.getElementById('gr-watch'), watchV = document.getElementById('gr-watch-val');
+    watchR.addEventListener('input', ()=> watchV.textContent = '$' + watchR.value);
+    const docR = document.getElementById('gr-doc'), docV = document.getElementById('gr-doc-val');
+    docR.addEventListener('input', ()=> docV.textContent = parseFloat(docR.value).toFixed(1) + '%');
+  }
+
+  renderQueue();
+  renderWorkspace(false);
+  renderLog();
+  wireGuardrails();
+})();
+</script>
