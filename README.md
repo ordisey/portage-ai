@@ -1,49 +1,48 @@
-# Portage AI — an agentic operations layer for freight & logistics teams
+# Portage AI
 
-**Case study submission — AI Agent Engineer, Teoh Capital / SIMBA**
-Author: Dijae · dijae0@gmail.com
+An agentic operations layer for freight & logistics teams — my submission for the Teoh Capital /
+SIMBA case study.
 
-Part 1 of the case study asked for a scoped, agentic logistics POC: a product roadmap, the top 3
-agentic functions, a scoping pack, and an interactive prototype. This repo is that submission.
+Dijae · dijae0@gmail.com
 
 - 📊 **Scoping pack (PPT):** `scoping-pack/Portage-AI-Scoping-Pack.pptx`
-- 🖥️ **Interactive prototype:** `prototype/index.html` (open directly in a browser, no server or
-  install required — see [Running the prototype](#running-the-prototype))
+- 🖥️ **Interactive prototype:** `prototype/index.html` (open directly in a browser — no server or
+  install needed, see [Running the prototype](#running-the-prototype))
 - 🗺️ **Product roadmap:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - 🤖 **Agent architecture & the top 3 agentic functions:** [`docs/AGENTS.md`](docs/AGENTS.md)
 - ✅ **Evaluation & guardrail plan:** [`docs/EVALS.md`](docs/EVALS.md)
 
-**Part 2** (Singapore telco mobile app for SIMBA — top 3 features, rationale, and prioritization)
-is a short, separate write-up: [`part-2-simba-mobile-app/README.md`](part-2-simba-mobile-app/README.md).
+**Part 2** — the SIMBA mobile app write-up — is a shorter, separate piece:
+[`part-2-simba-mobile-app/README.md`](part-2-simba-mobile-app/README.md).
 
 ---
 
-## Why this scope
+## Why I scoped it this way
 
-The case study fixes the domain (an "AI-first agentic logistics app"), but "logistics" is broad
-enough to hide the real ask, which is really: *can this person scope an ambiguous problem into a
-small set of agents that a business would actually trust in production?* The JD is explicit about
-what "trust" means here — tool use, planning, RAG, guardrails, human-in-the-loop checkpoints,
-evals, and integration with real systems.
+The brief hands you a domain — an AI-first agentic logistics app — but the real test is open-ended:
+can you take something that broad and narrow it to a system a business would actually trust running
+on its own? The JD is specific about what "trust" means to this team: tool use, planning, retrieval,
+guardrails, human-in-the-loop checkpoints, evals, and integration with real systems.
 
-So instead of a generic "track my package" app, this POC narrows to a **freight/parcel operations
-copilot** for a small logistics team (3PL, freight forwarder, or an internal logistics desk) —
-because that's the sharpest vehicle to demonstrate each of those things in one small system,
-rather than a shipment-tracker with a chatbot bolted on.
+So rather than build a generic shipment tracker with a chatbot layered on top, I scoped this down to
+one sharp slice — a **freight/parcel operations copilot** for a small logistics team (a 3PL, a
+freight forwarder, or an internal logistics desk). It's the fastest way to demonstrate everything the
+JD is actually testing for in one coherent system, instead of a handful of shallow features spread
+across "logistics" in general.
 
-## The product: Portage AI
+## What it is
 
-Portage AI sits on top of a logistics team's existing systems (TMS, carrier APIs, customs/policy
-docs, inbox) and runs three agents across the life of a shipment: booking it, watching it in
-transit, and closing it out. A human stays the approver for anything costly or risky; the agents
-own everything routine. See [`docs/AGENTS.md`](docs/AGENTS.md) for the full breakdown of each
-agent's tools, memory, planning loop, and guardrails.
+Portage AI sits on top of a logistics team's existing stack — TMS, carrier APIs, customs and policy
+documentation, inbox — and runs three agents across a shipment's lifecycle: booking it, watching it
+in transit, and closing it out. A human stays the approver for anything costly or risky; the agents
+own everything routine. The full breakdown of each agent — its tools, memory, planning loop, and
+exactly when it hands off to a person — is in [`docs/AGENTS.md`](docs/AGENTS.md).
 
 ## Running the prototype
 
 No build step, no dependencies, no API keys. It's a single static HTML file with mock data and a
-simulated agent trace (see `docs/AGENTS.md` for how the simulated calls map to what would be real
-tool calls in production).
+simulated agent trace (see `docs/AGENTS.md` for what each simulated tool call maps to in a real
+integration).
 
 ```bash
 # from the repo root
@@ -51,30 +50,30 @@ open prototype/index.html      # macOS
 start prototype/index.html     # Windows
 ```
 
-Or just double-click `prototype/index.html` in Explorer/Finder.
+Or just double-click `prototype/index.html`.
 
-A hosted version (shareable link, no download needed) is linked in the scoping pack and in the
+A hosted version — a shareable link, nothing to download — is in the scoping pack and in the
 submission email.
 
 ## Repo structure
 
 ```
 docs/
-  ROADMAP.md         product roadmap (Now / Next / Later) with success metrics per phase
+  ROADMAP.md         product roadmap (Now / Next / Later) with the exit criteria for each phase
   AGENTS.md           the 3 agentic functions: what each does, tools/memory/planning/guardrails
-  EVALS.md            how agent quality, reliability, and cost would be measured pre- and post-launch
-  ARCHITECTURE.md     system diagram — orchestration, tool layer, memory, HITL, observability
+  EVALS.md            how I'd measure agent quality, reliability, and cost before and after launch
+  ARCHITECTURE.md     system diagram - orchestration, tool layer, memory, HITL, observability
 prototype/
   index.html          interactive prototype (single file, mock data, no backend)
 scoping-pack/
   Portage-AI-Scoping-Pack.pptx
 ```
 
-## Notes on the prototype vs. production
+## Prototype vs. production
 
-Every "tool call" in the prototype (rate lookups, carrier booking, tracking webhooks, document
-extraction) is mocked with realistic fixture data so the agent reasoning and HITL flow can be
-evaluated without any real integrations or API keys. `docs/AGENTS.md` and `docs/ARCHITECTURE.md`
-spell out exactly which real system each mock stands in for (e.g. the "rate lookup" tool would be
-a TMS/carrier-rate API call; the "extract document" tool would be a structured-output call against
-an uploaded BOL/POD) and what would change to take this from POC to pilot.
+Every "tool call" in the prototype — rate lookups, carrier booking, tracking webhooks, document
+extraction — is mocked with realistic fixture data, so the agent reasoning and the human-in-the-loop
+flow can be judged without any real integrations or API keys sitting behind them. `docs/AGENTS.md`
+and `docs/ARCHITECTURE.md` spell out exactly which real system each mock stands in for — the "rate
+lookup" tool is a TMS/carrier-rate API call, "extract document" is a structured-output call against
+an uploaded BOL or POD — and what would actually change to take this from a POC to a pilot.

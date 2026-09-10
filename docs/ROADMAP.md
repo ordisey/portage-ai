@@ -1,66 +1,69 @@
 # Product roadmap — Portage AI
 
-Three phases, each gated by evidence from the phase before it rather than a fixed calendar date —
-consistent with "a working prototype this week beats a perfect design next month."
+Three phases, each gated by evidence from the one before it rather than a fixed date on a calendar.
+That's deliberate — a working prototype this week beats a perfect design next month, and I'd rather
+earn the right to automate more than promise it upfront.
 
-## Now — Prove the agents work on real logistics logic (this POC)
+## Now — prove the agents actually work (this POC)
 
-**Goal:** demonstrate that the three agents (Lane, Watch, Doc & Comms) make correct, explainable
-decisions on realistic shipment scenarios, with human-in-the-loop guardrails, before touching any
-live system.
+The goal here is narrow: show that the three agents — Lane, Watch, Doc & Comms — make correct,
+explainable decisions on realistic shipment scenarios, with a human in the loop, before any of them
+touch a live system.
 
-- Ship the interactive prototype (mock tools, fixture data, full HITL approval flow)
-- Define the tool contracts for all three agents (`docs/AGENTS.md`) so real integrations can be
-  swapped in without changing agent logic
-- Stand up a first eval set: ~20–30 golden shipment scenarios per agent covering the happy path,
-  the escalation path, and known edge cases (`docs/EVALS.md`)
-- Get the approval-queue UX in front of 2–3 real ops users (even against the mock) to validate the
-  interaction pattern before wiring real data behind it
+- Ship the interactive prototype — mocked tools, fixture data, full human-approval flow
+- Define the tool contracts for all three agents (`docs/AGENTS.md`), so real integrations can be
+  swapped in later without touching the agent logic itself
+- Build a first eval set — roughly 20-30 golden shipment scenarios per agent, covering the happy
+  path, the escalation path, and the edge cases I already know about
+- Put the approval-queue UX in front of two or three real ops people, even against the mock, to
+  validate the interaction before wiring real data behind it
 
-**Exit criteria:** eval pass rate and reviewer feedback are good enough to justify a real pilot,
-and the approval-queue UX is one ops people actually trust to act quickly on.
+**Exit criteria:** the eval results and the reviewer feedback are strong enough to justify a real
+pilot, and the approval queue is something an ops person would actually trust to act on quickly.
 
-## Next — Pilot on one real lane with one design partner
+## Next — pilot on one real lane with one design partner
 
-**Goal:** replace mocked tools with real integrations for a narrow, contained slice of real
-traffic, with a human approving every agent action.
+Here the goal shifts to replacing mocked tools with real integrations, on a narrow, contained slice
+of real traffic, with a human still approving every agent action.
 
-- Wire `lookup_carrier_rates` / `book_shipment` to a real TMS or carrier API for one lane
-- Wire `get_tracking_events` to a real carrier/EDI webhook feed
-- Wire `extract_document_fields` to real BOL/POD uploads (structured-output extraction, not OCR
-  from scratch)
-- Every agent action still requires human approval, regardless of the guardrail thresholds in
-  `docs/AGENTS.md` — the thresholds get *tuned* against real approve/reject decisions in this phase,
-  not trusted yet
-- Expand the eval set with real (anonymized) production scenarios and start tracking cost and
-  latency per agent, not just accuracy
-- Build the audit log into something a non-engineer ops lead can actually read and act on
+- Wire `lookup_carrier_rates` / `book_shipment` to a real TMS or carrier API, one lane at a time
+- Wire `get_tracking_events` to a real carrier or EDI webhook feed
+- Wire `extract_document_fields` to real BOL/POD uploads — structured extraction, not OCR built from
+  scratch
+- Every agent action still needs human sign-off, regardless of the guardrail thresholds in
+  `docs/AGENTS.md`. Those thresholds get tuned against real approve/reject decisions in this phase;
+  I'm not trusting them yet
+- Expand the eval set with real, anonymized production scenarios, and start tracking cost and
+  latency alongside accuracy
+- Turn the audit log into something a non-engineer ops lead can actually read and act on, not just a
+  debugging tool for me
 
-**Exit criteria:** the agents' recommendations match what a human ops lead would have chosen on
->90% of real cases in the pilot lane, cost/latency are within budget, and the design partner wants
-to keep using it.
+**Exit criteria:** the agents' recommendations match what a human ops lead would have chosen on over
+90% of real cases in the pilot lane, cost and latency stay within budget, and the design partner
+wants to keep using it.
 
-## Later — Expand autonomy and surface area
+## Later — expand autonomy and surface area
 
-**Goal:** let the system act autonomously on low-risk decisions (per the tuned guardrails from
-Next), and widen coverage from one lane to the full book of business.
+Once Next has earned some trust, this phase lets the system act on its own for the low-risk
+decisions that phase proved out, and widens from one lane to the full book of business.
 
-- Turn on auto-execution for the guardrail-cleared paths identified in the pilot (e.g. routine
-  on-schedule updates, low-cost reroutes) — everything else stays human-approved
-- Add a 4th surface only if the first three justify it: a **negotiation/rate-shopping agent** that
-  proactively re-shops underperforming lanes, rather than only reacting to individual shipments
-- Expand from one design-partner lane to the full network; add per-account guardrail tuning instead
-  of one global threshold
-- Formalize the eval pipeline into a standing regression suite that runs on every prompt/model
-  change (see `docs/EVALS.md`) so autonomy doesn't quietly regress as the system evolves
+- Turn on auto-execution for whichever guardrail-cleared paths the pilot actually validated —
+  routine on-schedule updates, low-cost reroutes. Everything else stays human-approved
+- Add a fourth surface only if the first three earn it — a negotiation/rate-shopping agent that
+  proactively re-shops underperforming lanes, instead of only reacting shipment by shipment
+- Expand from one design-partner lane to the full network, with per-account guardrail tuning instead
+  of a single global threshold
+- Formalize the eval pipeline into a standing regression suite that runs on every prompt or model
+  change, so autonomy doesn't quietly regress as the system evolves
 
-**Exit criteria:** defined per surface as it's turned on — this phase is explicitly paced by trust
-earned in Next, not by a target date.
+**Exit criteria:** defined per surface as it's turned on. This phase is paced by trust earned in
+Next, not by a date on a roadmap slide.
 
-## What's deliberately out of scope
+## What I'm deliberately leaving out
 
-- Full ERP/WMS replacement — Portage AI sits alongside existing systems, it doesn't replace them
-- Autonomous financial actions (payments, claims, contract commitments) — always human-approved,
+- A full ERP/WMS replacement — Portage AI sits alongside a team's existing systems, it doesn't
+  replace them
+- Any autonomous financial action — payments, claims, contract commitments — stays human-approved
   indefinitely, regardless of phase
-- A generic multi-vertical agent platform — this roadmap stays logistics-specific; horizontal
-  platform bets are a distraction until one vertical is proven
+- A generic multi-vertical agent platform — this roadmap stays logistics-specific. A horizontal
+  platform bet is a distraction until one vertical is actually proven
