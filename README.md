@@ -13,6 +13,9 @@ agentic functions, a scoping pack, and an interactive prototype. This repo is th
 - 🤖 **Agent architecture & the top 3 agentic functions:** [`docs/AGENTS.md`](docs/AGENTS.md)
 - ✅ **Evaluation & guardrail plan:** [`docs/EVALS.md`](docs/EVALS.md)
 
+**Part 2** (Singapore telco mobile app for SIMBA — top 3 features, rationale, and prioritization)
+is a short, separate write-up: [`part-2-simba-mobile-app/README.md`](part-2-simba-mobile-app/README.md).
+
 ---
 
 ## Why this scope
