@@ -1,3 +1,5 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Portage AI</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -59,6 +61,7 @@
   }
 
   *{box-sizing:border-box;}
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   body{
     margin:0;
     background:var(--bg);
@@ -111,7 +114,6 @@
   @media (max-width: 1040px){
     .console{ grid-template-columns: 1fr; }
   }
-
   .panel{
     background:var(--surface); border:1px solid var(--border); border-radius:12px;
     box-shadow:var(--shadow); overflow:hidden;
@@ -259,9 +261,79 @@
     margin-top:18px; font-size:11.5px; color:var(--ink-muted); text-align:center; padding:0 10px;
   }
   .footnote a{ color:var(--accent); }
+
+  /* ---------- access gate ---------- */
+  .gate{
+    position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+    background:var(--bg); padding:20px;
+  }
+  .gate-card{
+    width:100%; max-width:380px; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:28px 26px; box-shadow:var(--shadow);
+  }
+  .gate-mark{
+    width:38px; height:38px; border-radius:9px; background:var(--accent);
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px; box-shadow:var(--shadow);
+  }
+  .gate-mark svg{ width:20px; height:20px; }
+  .gate-card h1{ font-family:var(--font-display); font-size:18px; font-weight:800; margin:0 0 4px; }
+  .gate-card p{ font-size:12.5px; color:var(--ink-muted); margin:0 0 18px; }
+  .gate-form{ display:flex; flex-direction:column; gap:10px; }
+  .gate-input{
+    width:100%; border:1px solid var(--border); border-radius:9px; padding:10px 12px;
+    font-size:14px; font-family:var(--font-mono); color:var(--ink); background:var(--surface-2);
+    letter-spacing:.04em;
+  }
+  .gate-input:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
+  .gate-submit{
+    border:none; border-radius:9px; padding:10px 13px; font-size:13px; font-weight:600; cursor:pointer;
+    background:var(--accent); color:var(--accent-ink);
+  }
+  .gate-submit:hover{ filter:brightness(1.06); }
+  .gate-error{ font-size:12px; color:var(--crit); min-height:16px; margin:0; }
+  .gate.unlocked{ display:none; }
+  #app-root[hidden]{ display:none; }
+
+  /* ---------- mobile ---------- */
+  @media (max-width: 640px){
+    .app{ padding:14px 14px 40px; }
+    .topbar{ margin-bottom:14px; }
+    .brand-text h1{ font-size:18px; }
+    .stat-row{ width:100%; }
+    .stat-tile{ flex:1 1 calc(50% - 5px); min-width:0; }
+    /* Nested scroll boxes fight the page scroll on a touch screen - let the
+       queue flow with the page instead of scrolling inside a fixed box. */
+    .queue-list{ max-height:none; overflow-y:visible; }
+    .log-list{ max-height:none; overflow-y:visible; }
+    /* Comfortable tap targets (~44px) instead of the tighter desktop sizing. */
+    .btn, .gate-submit{ padding:12px 16px; font-size:13.5px; }
+    .replay-btn{ padding:10px 14px; }
+    .queue-item{ padding:12px 11px; }
+    /* 16px stops iOS Safari auto-zooming the page when a text input gets focus. */
+    .gate-input, .draft-box textarea{ font-size:16px; }
+  }
 </style>
 
-<div class="app">
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 8L12 3L21 8V16L12 21L3 16V8Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M3 8L12 13L21 8" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M12 13V21" stroke="white" stroke-width="1.6"/>
+      </svg>
+    </div>
+    <h1>Portage AI</h1>
+    <p>Case study prototype — enter the passcode you were given to continue.</p>
+    <form class="gate-form" id="gate-form">
+      <input class="gate-input" id="gate-input" type="password" placeholder="Passcode" autocomplete="off" autofocus>
+      <p class="gate-error" id="gate-error"></p>
+      <button class="gate-submit" type="submit">Enter</button>
+    </form>
+  </div>
+</div>
+
+<div class="app" id="app-root" hidden>
   <div class="topbar">
     <div class="brand">
       <div class="brand-mark">
@@ -325,6 +397,39 @@
 
   <p class="footnote">Tool calls shown here (rates, tracking, extraction, booking) are simulated with realistic fixture data — see <span class="mono">docs/AGENTS.md</span> in the repo for what each one maps to in production.</p>
 </div>
+
+<script>
+(function(){
+  const PASSCODE = "teohcapital";
+  const gate = document.getElementById("gate");
+  const appRoot = document.getElementById("app-root");
+  const form = document.getElementById("gate-form");
+  const input = document.getElementById("gate-input");
+  const error = document.getElementById("gate-error");
+
+  function unlock(){
+    gate.classList.add("unlocked");
+    appRoot.hidden = false;
+    try { sessionStorage.setItem("portage-ai-unlocked", "1"); } catch(e) {}
+  }
+
+  let alreadyUnlocked = false;
+  try { alreadyUnlocked = sessionStorage.getItem("portage-ai-unlocked") === "1"; } catch(e) {}
+  if (alreadyUnlocked) unlock();
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    if (input.value.trim().toLowerCase() === PASSCODE) {
+      error.textContent = "";
+      unlock();
+    } else {
+      error.textContent = "That's not the right passcode.";
+      input.value = "";
+      input.focus();
+    }
+  });
+})();
+</script>
 
 <script>
 (function(){
@@ -529,6 +634,7 @@
     const s = shipments.find(x=>x.id===id);
     s.status = 'auto';
     s.queueNote = 'Resolved · approved by you';
+    s.resolvedNote = outcomeText;
     addLog(s.agent, `${id} — ${outcomeText}`);
     renderQueue();
     renderWorkspace(false);
@@ -537,6 +643,13 @@
   function renderDecision(s){
     const d = s.decision;
     if(!d) return '';
+    if(s.resolvedNote){
+      return `
+        <div class="decision-card ok">
+          <div class="decision-head">✓ Resolved</div>
+          <div class="decision-body">${s.resolvedNote}</div>
+        </div>`;
+    }
     if(d.kind==='auto'){
       return `
         <div class="decision-card ok">
