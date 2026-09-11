@@ -3,7 +3,7 @@
 An agentic operations layer for freight & logistics teams — my submission for the Teoh Capital /
 SIMBA case study.
 
-Dijae · dijae0@gmail.com
+Dijae · dijaedadula@gmail.com
 
 - 📊 **Scoping pack (PPT):** `scoping-pack/Portage-AI-Scoping-Pack.pptx`
 - 🖥️ **Interactive prototype:** `prototype/index.html` (open directly in a browser — no server or
