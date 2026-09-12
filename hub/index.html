@@ -1,0 +1,737 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case Study Hub — Dijae Dadula</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#eef3f4; --surface:#ffffff; --surface-2:#e6edef; --surface-3:#dde6e8;
+    --ink:#0f181d; --ink-muted:#55686e; --border:#d5e0e3;
+    --accent:#0e7c86; --accent-ink:#ffffff;
+    --ok:#1e8e5a; --ok-bg:#e3f3ea;
+    --warn:#b8720b; --warn-bg:#fbf0dd;
+    --crit:#c0392b; --crit-bg:#fbe7e4;
+    --purple:#6a4bb0; --purple-bg:#efe9f8;
+    --navy:#0b141a; --navy-panel:#121c21; --navy-panel-2:#17242a;
+    --shadow: 0 1px 2px rgba(15,24,29,.06), 0 6px 20px -8px rgba(15,24,29,.12);
+    --font-display:'Archivo',system-ui,sans-serif;
+    --font-body:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0a1215; --surface:#121c21; --surface-2:#17242a; --surface-3:#1d2b31;
+      --ink:#e8eef0; --ink-muted:#8ea0a6; --border:#233238;
+      --accent:#3fc0cb; --accent-ink:#06171a;
+      --ok:#39c584; --ok-bg:#122a20;
+      --warn:#e3ab41; --warn-bg:#2c2110;
+      --crit:#e8685a; --crit-bg:#2c1613;
+      --purple:#b79ce8; --purple-bg:#231a36;
+      --navy:#060b0e; --navy-panel:#0d1519; --navy-panel-2:#111c21;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px -10px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a1215; --surface:#121c21; --surface-2:#17242a; --surface-3:#1d2b31;
+    --ink:#e8eef0; --ink-muted:#8ea0a6; --border:#233238;
+    --accent:#3fc0cb; --accent-ink:#06171a;
+    --ok:#39c584; --ok-bg:#122a20;
+    --warn:#e3ab41; --warn-bg:#2c2110;
+    --crit:#e8685a; --crit-bg:#2c1613;
+    --purple:#b79ce8; --purple-bg:#231a36;
+    --navy:#060b0e; --navy-panel:#0d1519; --navy-panel-2:#111c21;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px -10px rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box;}
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  html,body{ height:100%; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body);
+    font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{ color:var(--accent); }
+  ::selection{ background:var(--accent); color:var(--accent-ink); }
+  button, input{ font-family:inherit; }
+  .mono{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+  [hidden]{ display:none!important; }
+
+  /* ---------- gate ---------- */
+  .gate{
+    position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center;
+    background:var(--bg); padding:24px; overflow-y:auto;
+  }
+  .gate-wrap{ width:100%; max-width:460px; margin:auto; }
+  .gate-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:32px 30px; box-shadow:var(--shadow);
+  }
+  .gate-mark{
+    width:42px; height:42px; border-radius:10px; background:var(--accent);
+    display:flex; align-items:center; justify-content:center; margin-bottom:18px; box-shadow:var(--shadow);
+  }
+  .gate-mark svg{ width:22px; height:22px; }
+  .gate-card h1{ font-family:var(--font-display); font-size:21px; font-weight:800; margin:0 0 6px; text-wrap:balance; }
+  .gate-card p.gate-sub{ font-size:13px; color:var(--ink-muted); margin:0 0 22px; line-height:1.6; }
+  .gate-form{ display:flex; flex-direction:column; gap:10px; }
+  .gate-input{
+    width:100%; border:1px solid var(--border); border-radius:9px; padding:12px 13px;
+    font-size:16px; font-family:var(--font-mono); color:var(--ink); background:var(--surface-2);
+    letter-spacing:.04em;
+  }
+  .gate-input:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
+  .gate-submit{
+    border:none; border-radius:9px; padding:12px 14px; font-size:13.5px; font-weight:600; cursor:pointer;
+    background:var(--accent); color:var(--accent-ink);
+  }
+  .gate-submit:hover{ filter:brightness(1.06); }
+  .gate-error{ font-size:12px; color:var(--crit); min-height:16px; margin:0; }
+
+  .disclosure{
+    margin-top:22px; padding-top:20px; border-top:1px solid var(--border);
+    font-size:11.5px; line-height:1.7; color:var(--ink-muted);
+  }
+  .disclosure b{ color:var(--ink); font-weight:600; }
+  .disclosure p{ margin:0 0 10px; }
+  .disclosure p:last-child{ margin-bottom:0; }
+
+  /* ---------- app shell ---------- */
+  .shell{ display:flex; min-height:100vh; }
+  .sidebar{
+    width:250px; flex:none; background:var(--surface); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; padding:20px 14px; position:sticky; top:0; height:100vh;
+  }
+  .sb-brand{ display:flex; align-items:center; gap:10px; padding:4px 8px 20px; }
+  .sb-mark{ width:32px; height:32px; border-radius:8px; background:var(--accent); display:flex; align-items:center; justify-content:center; flex:none; }
+  .sb-mark svg{ width:17px; height:17px; }
+  .sb-brand-text strong{ display:block; font-family:var(--font-display); font-size:14px; font-weight:800; }
+  .sb-brand-text span{ display:block; font-size:10.5px; color:var(--ink-muted); }
+
+  .sb-nav{ display:flex; flex-direction:column; gap:2px; flex:1; }
+  .sb-label{ font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-muted); padding:14px 10px 6px; }
+  .sb-item{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; cursor:pointer;
+    border:none; background:none; color:var(--ink); font-size:13px; font-weight:500; text-align:left; width:100%;
+    text-decoration:none;
+  }
+  .sb-item:hover{ background:var(--surface-2); }
+  .sb-item.active{ background:var(--surface-2); color:var(--accent); font-weight:600; }
+  .sb-item svg{ width:17px; height:17px; flex:none; opacity:.85; }
+  .sb-item .ext{ margin-left:auto; opacity:.5; width:12px; height:12px; }
+
+  .sb-foot{ padding:14px 10px 4px; border-top:1px solid var(--border); margin-top:8px; }
+  .sb-foot .name{ font-size:12.5px; font-weight:600; }
+  .sb-foot .email{ font-size:11px; color:var(--ink-muted); margin-top:1px; }
+  .sb-signout{ margin-top:10px; font-size:11.5px; color:var(--ink-muted); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline; }
+  .sb-signout:hover{ color:var(--ink); }
+
+  .content{ flex:1; min-width:0; padding:36px 44px 60px; max-width:1180px; }
+  @media (max-width: 900px){
+    .shell{ flex-direction:column; }
+    .sidebar{ width:100%; height:auto; position:static; flex-direction:row; flex-wrap:wrap; align-items:center; padding:12px 14px; gap:6px; }
+    .sb-brand{ padding:2px 8px 2px 0; }
+    .sb-nav{ flex-direction:row; flex-wrap:wrap; flex:none; }
+    .sb-label{ display:none; }
+    .sb-foot{ display:none; }
+    .content{ padding:24px 18px 48px; }
+  }
+
+  .view-kicker{ font-size:11.5px; font-weight:600; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; margin:0 0 8px; }
+  .view-title{ font-family:var(--font-display); font-size:30px; font-weight:800; margin:0 0 10px; text-wrap:balance; }
+  .view-lede{ font-size:14.5px; color:var(--ink-muted); max-width:68ch; margin:0 0 30px; line-height:1.65; }
+
+  /* ---------- cards / shared components ---------- */
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); }
+  .grid-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-bottom:8px; }
+  .link-card{
+    display:block; padding:18px 20px; text-decoration:none; color:inherit; position:relative;
+  }
+  .link-card:hover{ border-color:var(--accent); }
+  .link-card .lc-icon{ width:34px; height:34px; border-radius:9px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .link-card .lc-icon svg{ width:18px; height:18px; color:var(--accent); }
+  .link-card h3{ font-family:var(--font-display); font-size:14.5px; font-weight:700; margin:0 0 4px; }
+  .link-card p{ font-size:12px; color:var(--ink-muted); margin:0; line-height:1.5; }
+
+  .doc-links{ display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 28px; }
+  .doc-chip{
+    display:inline-flex; align-items:center; gap:6px; padding:7px 13px; border-radius:100px;
+    border:1px solid var(--border); background:var(--surface); color:var(--ink); text-decoration:none;
+    font-size:12px; font-weight:500;
+  }
+  .doc-chip:hover{ border-color:var(--accent); color:var(--accent); }
+  .doc-chip svg{ width:12px; height:12px; }
+
+  .embed-frame{
+    width:100%; height:760px; border:1px solid var(--border); border-radius:14px; overflow:hidden;
+    box-shadow:var(--shadow); background:var(--navy);
+  }
+  .embed-frame iframe{ width:100%; height:100%; border:none; display:block; }
+  .embed-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:7px; border:none; border-radius:9px; padding:9px 15px;
+    font-size:12.5px; font-weight:600; cursor:pointer; text-decoration:none;
+  }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-primary:hover{ filter:brightness(1.06); }
+  .btn-ghost{ background:var(--surface-2); color:var(--ink); border:1px solid var(--border); }
+  .btn-ghost:hover{ border-color:var(--ink-muted); }
+  .btn svg{ width:14px; height:14px; }
+
+  /* ---------- Part 2 native content ---------- */
+  .p2-context{
+    margin:0 0 28px; padding:16px 18px; border-radius:10px; background:var(--surface-2);
+    border:1px solid var(--border); font-size:13px; line-height:1.65;
+  }
+  .p2-context b{ font-weight:600; }
+  .p2-feature{ padding:22px 0; border-top:1px solid var(--border); }
+  .p2-feature:first-of-type{ border-top:none; padding-top:0; }
+  .p2-f-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+  .p2-f-num{ font-family:var(--font-mono); font-size:12px; color:var(--ink-muted); }
+  .p2-f-title{ font-family:var(--font-display); font-size:17px; font-weight:700; margin:0; flex:1; min-width:200px; }
+  .tag{ font-family:var(--font-mono); font-size:10.5px; font-weight:500; padding:3px 9px; border-radius:100px; white-space:nowrap; }
+  .tag-ok{ background:var(--ok-bg); color:var(--ok); }
+  .tag-warn{ background:var(--warn-bg); color:var(--warn); }
+  .tag-purple{ background:var(--purple-bg); color:var(--purple); }
+  .p2-desc{ font-size:13.5px; margin:0 0 10px; max-width:66ch; }
+  .p2-why{ font-size:13px; line-height:1.65; color:var(--ink-muted); margin:0 0 8px; max-width:68ch; }
+  .p2-why b{ color:var(--ink); font-weight:600; }
+  .p2-priority{ font-size:12.5px; margin:0; max-width:68ch; }
+  .p2-closing{ margin-top:10px; padding-top:22px; border-top:1px solid var(--border); font-size:12.5px; line-height:1.7; color:var(--ink-muted); }
+  .p2-closing b{ color:var(--ink); font-weight:600; }
+
+  /* ---------- slide viewer ---------- */
+  .deck-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .deck-nav{ display:flex; align-items:center; gap:10px; }
+  .deck-count{ font-family:var(--font-mono); font-size:12.5px; color:var(--ink-muted); min-width:48px; text-align:center; }
+  .deck-btn{
+    width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--surface);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink);
+  }
+  .deck-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .deck-btn:disabled{ opacity:.4; cursor:default; }
+  .deck-btn svg{ width:16px; height:16px; }
+
+  .deck-stage{
+    width:100%; aspect-ratio:16/9; background:var(--navy); border-radius:14px; border:1px solid var(--border);
+    box-shadow:var(--shadow); overflow:hidden; position:relative;
+  }
+  .slide{
+    position:absolute; inset:0; padding:5% 6%; display:none; flex-direction:column;
+    color:#e8eef0; background:var(--navy);
+  }
+  .slide.active{ display:flex; }
+  .slide.paper{ background:var(--surface); color:var(--ink); }
+  .slide-kicker{ font-family:var(--font-body); font-size:.8em; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin:0 0 .4em; }
+  .slide-title{ font-family:var(--font-display); font-size:1.9em; font-weight:800; margin:0 0 .5em; line-height:1.15; }
+  .slide-body{ flex:1; min-height:0; overflow:auto; font-size:1em; }
+  .slide-body::-webkit-scrollbar{ width:6px; }
+  .slide p{ margin:0 0 .7em; font-size:.92em; line-height:1.55; }
+  .slide .grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:.9em; height:100%; }
+  .slide .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:1em; height:100%; }
+  .s-card{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:.6em; padding:.9em 1em; font-size:.82em; }
+  .slide.paper .s-card{ background:var(--surface-2); border-color:var(--border); }
+  .s-card h4{ font-family:var(--font-display); font-size:1.15em; margin:0 0 .3em; }
+  .s-card .s-tag{ display:inline-block; font-size:.78em; font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.5em; }
+  .s-card ul{ margin:.5em 0 0; padding-left:1.1em; font-size:.95em; line-height:1.6; }
+  .s-card ul li{ margin-bottom:.25em; }
+  .badge-num{
+    display:inline-flex; align-items:center; justify-content:center; width:1.8em; height:1.8em; border-radius:50%;
+    background:rgba(63,192,203,.15); border:1px solid var(--accent); color:var(--accent); font-family:var(--font-display);
+    font-weight:700; font-size:.85em; flex:none;
+  }
+  .slide-table{ width:100%; border-collapse:collapse; font-size:.78em; }
+  .slide-table th, .slide-table td{ border:1px solid rgba(255,255,255,.15); padding:.6em .7em; text-align:left; vertical-align:top; }
+  .slide.paper .slide-table th, .slide.paper .slide-table td{ border-color:var(--border); }
+  .slide-table th{ font-family:var(--font-display); color:var(--accent); }
+  .pill-row{ display:flex; gap:.5em; flex-wrap:wrap; margin-top:.8em; }
+  .pill{ font-size:.78em; font-weight:600; padding:.35em .8em; border-radius:100px; background:rgba(63,192,203,.15); color:var(--accent); }
+  .slide-foot{ font-size:.7em; color:var(--ink-muted); position:absolute; bottom:4%; left:6%; right:6%; display:flex; justify-content:space-between; }
+  .slide.paper .slide-foot{ color:var(--ink-muted); }
+  .slide:not(.paper) .slide-foot{ color:rgba(255,255,255,.4); }
+
+  @media (max-width: 640px){
+    .content{ padding:20px 14px 44px; }
+    .view-title{ font-size:23px; }
+    .embed-frame{ height:560px; }
+    .slide{ padding:6% 6%; }
+    .slide-title{ font-size:1.5em; }
+    .slide .grid3{ grid-template-columns:1fr; overflow-y:auto; }
+    .slide .grid2{ grid-template-columns:1fr; overflow-y:auto; }
+    .slide-table{ font-size:.65em; }
+  }
+</style>
+
+<div class="gate" id="gate">
+  <div class="gate-wrap">
+    <div class="gate-card">
+      <div class="gate-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8L12 3L21 8V16L12 21L3 16V8Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M3 8L12 13L21 8" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M12 13V21" stroke="white" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <h1>Case Study Hub</h1>
+      <p class="gate-sub">Prepared by Dijae Dadula for the Teoh Capital / SIMBA hiring process. Enter the access code you were given by email to continue.</p>
+      <form class="gate-form" id="gate-form">
+        <input class="gate-input" id="gate-input" type="password" placeholder="Access code" autocomplete="off" autofocus>
+        <p class="gate-error" id="gate-error"></p>
+        <button class="gate-submit" type="submit">Sign in</button>
+      </form>
+      <div class="disclosure">
+        <p><b>This is only viewable as part of the hiring process</b> — please don't forward the link or access code beyond the reviewing team.</p>
+        <p>This is a fictional, hypothetical case study, not an actual product, roadmap, or commitment of Teoh Capital, SIMBA, or any affiliated company, and not endorsed by them. References to SIMBA, Teoh Capital, and the M1 acquisition are based on publicly available information and used for illustrative purposes only — all product data, metrics, and mock content throughout are invented for this exercise.</p>
+        <p>Prepared and owned by <b>Dijae Dadula</b>, built with Claude Code and AI-native tooling (GitHub, Vercel). Only the finished output is shown here — prompts and process aren't included. This represents real time, thought, and effort; please treat it accordingly.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="shell" hidden>
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8L12 3L21 8V16L12 21L3 16V8Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M3 8L12 13L21 8" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M12 13V21" stroke="white" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <div class="sb-brand-text">
+        <strong>Case Study Hub</strong>
+        <span>Teoh Capital / SIMBA</span>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-label">Contents</div>
+      <button class="sb-item active" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12l8-8 8 8M6 10v9a1 1 0 001 1h3v-6h4v6h3a1 1 0 001-1v-9"/></svg>
+        Overview
+      </button>
+      <button class="sb-item" data-view="part1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>
+        Part 1 — Portage AI
+      </button>
+      <button class="sb-item" data-view="part2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+        Part 2 — SIMBA App
+      </button>
+      <button class="sb-item" data-view="deck">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="4" width="20" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
+        Scoping Pack
+      </button>
+      <div class="sb-label">Source</div>
+      <a class="sb-item" href="https://github.com/ordisey/portage-ai" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.5 0-.24-.01-1.04-.01-1.88-2.78.62-3.37-1.22-3.37-1.22-.46-1.2-1.11-1.52-1.11-1.52-.9-.63.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.05 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 015 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.92-2.34 4.78-4.57 5.04.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.5A10.26 10.26 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
+        GitHub repo
+        <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M8 7h9v9"/></svg>
+      </a>
+    </nav>
+
+    <div class="sb-foot">
+      <div class="name">Dijae Dadula</div>
+      <div class="email">dijaedadula@gmail.com</div>
+      <button class="sb-signout" id="signout-btn">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <section id="view-overview">
+      <p class="view-kicker">AI Agent Engineer — Case Study</p>
+      <h1 class="view-title">Hi — thanks for reviewing this</h1>
+      <p class="view-lede">This case study has two parts. Part 1 scopes and prototypes an agentic logistics app end to end. Part 2 is a quicker read on product thinking, scoping a mobile app for SIMBA. Everything is linked from the sidebar — the interactive prototype and the presentation both run right here in the browser.</p>
+
+      <div class="grid-cards">
+        <button class="card link-card" data-view="part1" style="cursor:pointer;border:1px solid var(--border);width:100%;font:inherit;">
+          <div class="lc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
+          <h3>Part 1 — Portage AI</h3>
+          <p>Roadmap, top 3 agentic functions, architecture, evals, and a fully interactive prototype.</p>
+        </button>
+        <button class="card link-card" data-view="part2" style="cursor:pointer;border:1px solid var(--border);width:100%;font:inherit;">
+          <div class="lc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+          <h3>Part 2 — SIMBA Mobile App</h3>
+          <p>Top 3 features for a Singapore telco app, with rationale and prioritization.</p>
+        </button>
+        <button class="card link-card" data-view="deck" style="cursor:pointer;border:1px solid var(--border);width:100%;font:inherit;">
+          <div class="lc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="4" width="20" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg></div>
+          <h3>Scoping Pack</h3>
+          <p>The full 9-slide deck — present it right here, or download the .pptx.</p>
+        </button>
+        <a class="card link-card" href="https://github.com/ordisey/portage-ai" target="_blank" rel="noopener" style="border:1px solid var(--border);">
+          <div class="lc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 17L17 7M8 7h9v9"/></svg></div>
+          <h3>GitHub Repository</h3>
+          <p>Full source, docs, and commit history — everything behind this hub.</p>
+        </a>
+      </div>
+
+      <div class="disclosure card" style="padding:20px 22px;margin-top:26px;">
+        <p><b>Good to know before you dig in:</b></p>
+        <p>This is a fictional, hypothetical case study — not an actual product, roadmap, or commitment of Teoh Capital, SIMBA, or any affiliated company, and not endorsed by them. References to SIMBA, Teoh Capital, and the M1 acquisition are based on publicly available information and used for illustrative purposes only; all product data, metrics, and mock content throughout are invented for this exercise.</p>
+        <p>Prepared and owned by Dijae Dadula, built with Claude Code and AI-native tooling (GitHub, Vercel). Only the finished output is shown here — prompts and process aren't included.</p>
+      </div>
+    </section>
+
+    <section id="view-part1" hidden>
+      <p class="view-kicker">Part 1</p>
+      <h1 class="view-title">Portage AI</h1>
+      <p class="view-lede">An agentic operations layer for freight & logistics teams. Three agents — booking, exception handling, document &amp; customer comms — sharing one orchestration layer, one shipment record, and one human approval queue.</p>
+
+      <div class="doc-links">
+        <a class="doc-chip" href="https://github.com/ordisey/portage-ai/blob/main/README.md" target="_blank" rel="noopener">Overview</a>
+        <a class="doc-chip" href="https://github.com/ordisey/portage-ai/blob/main/docs/ROADMAP.md" target="_blank" rel="noopener">Roadmap</a>
+        <a class="doc-chip" href="https://github.com/ordisey/portage-ai/blob/main/docs/AGENTS.md" target="_blank" rel="noopener">Agent design</a>
+        <a class="doc-chip" href="https://github.com/ordisey/portage-ai/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">Architecture</a>
+        <a class="doc-chip" href="https://github.com/ordisey/portage-ai/blob/main/docs/EVALS.md" target="_blank" rel="noopener">Evaluation plan</a>
+      </div>
+
+      <div class="embed-toolbar">
+        <span style="font-size:12.5px;color:var(--ink-muted);">Fully interactive — click a shipment, approve or reject an escalation, edit the drafted email, drag the guardrail sliders.</span>
+        <a class="btn btn-ghost" href="https://prototype-ruby-xi.vercel.app/?code=teohcapital" target="_blank" rel="noopener">
+          Open full-screen
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M8 7h9v9"/></svg>
+        </a>
+      </div>
+      <div class="embed-frame">
+        <iframe id="part1-frame" src="about:blank" data-src="https://prototype-ruby-xi.vercel.app/?code=teohcapital" title="Portage AI interactive prototype" loading="lazy"></iframe>
+      </div>
+    </section>
+
+    <section id="view-part2" hidden>
+      <p class="view-kicker">Part 2</p>
+      <h1 class="view-title">Singapore Telco Mobile App — SIMBA</h1>
+      <p class="view-lede">Top 3 features, with rationale and prioritization. Kept short on purpose — the brief itself asks for a quick read on product thinking, not a second prototype.</p>
+
+      <div class="p2-context">
+        SIMBA's proposed acquisition of M1 didn't go through — IMDA suspended its review in May 2026 over a spectrum-licensing investigation, and the deal was terminated. That leaves SIMBA where it's actually been most effective: <b>a lean, digital-first challenger competing on price, transparency, and simplicity rather than network scale.</b> That's the lens I used below.
+      </div>
+
+      <div class="p2-feature">
+        <div class="p2-f-head">
+          <span class="p2-f-num">01</span>
+          <h3 class="p2-f-title">Usage &amp; billing you can trust at a glance</h3>
+          <span class="tag tag-ok">P0 · first</span>
+        </div>
+        <p class="p2-desc">Real-time data / talktime / rollover balance, proactive low-balance and bill-change alerts, and a plain-language breakdown of every charge.</p>
+        <p class="p2-why"><b>Why —</b> SIMBA's entire pitch (no contract, no hidden fees, free 6-cycle rollover) is a trust claim. If the app doesn't make that promise instantly legible — and current My SIMBA reviews mention it can be slow to load and has crashed — the brand's whole differentiator disappears at the exact moment it matters: the moment someone checks if they're about to pay more.</p>
+        <p class="p2-priority"><b>Priority —</b> the cheapest, most foundational move I can make. It's data SIMBA already has, just not legible yet, and it protects revenue through retention.</p>
+      </div>
+
+      <div class="p2-feature">
+        <div class="p2-f-head">
+          <span class="p2-f-num">02</span>
+          <h3 class="p2-f-title">Instant self-serve for everything</h3>
+          <span class="tag tag-ok">P0 / P1 · parallel</span>
+        </div>
+        <p class="p2-desc">One-tap eSIM activation and porting, in-app plan switching, and simple multi-line / family management — no store visit, no call.</p>
+        <p class="p2-why"><b>Why —</b> SIMBA doesn't have a retail footprint like Singtel or StarHub — the app <i>is</i> the storefront. Every point of friction either sends a customer to a competitor with a shop, or into a support queue that costs more per interaction than a lean challenger can afford. It's also the biggest growth lever they have: "switch to SIMBA, it took three minutes."</p>
+        <p class="p2-priority"><b>Priority —</b> build alongside #1. I'd rank it second only because the scope — eSIM, porting integrations — is bigger.</p>
+      </div>
+
+      <div class="p2-feature">
+        <div class="p2-f-head">
+          <span class="p2-f-num">03</span>
+          <h3 class="p2-f-title">A support assistant that actually resolves things</h3>
+          <span class="tag tag-purple">P2 · sequenced last</span>
+        </div>
+        <p class="p2-desc">An in-app assistant that answers billing / roaming / outage questions instantly, walks a customer through eSIM or roaming setup, and escalates to a human only when it genuinely needs one.</p>
+        <p class="p2-why"><b>Why —</b> this is where SIMBA's cost structure and its customers' expectations meet. Routine questions — why did my bill change, how do I turn on roaming, is there an outage — are the highest-volume, lowest-value tickets a support team gets, and every one a live agent handles is scale-player money a challenger doesn't have. Done well, it also builds trust instead of eroding it: fast, clear answers instead of hold-the-line frustration.</p>
+        <p class="p2-priority"><b>Priority —</b> last, on purpose. It only works once the usage/billing data from #1 is clean and the self-serve actions from #2 actually exist for it to use. Build it first and you'd ship an assistant that can explain a problem but can't fix it.</p>
+      </div>
+
+      <div class="p2-closing">
+        <b>How I prioritized —</b> three questions, in this order: does it protect the trust the brand is already promising, does it cut cost-to-serve or friction in the one channel a no-storefront challenger actually has, and what depends on what. Feature 3 is arguably the most interesting of the three strategically — but putting it last, behind the data and actions it needs to be useful, is itself the call this exercise is testing.
+      </div>
+    </section>
+
+    <section id="view-deck" hidden>
+      <p class="view-kicker">Scoping pack</p>
+      <h1 class="view-title">Present it here, or take it with you</h1>
+      <p class="view-lede">Same 9 slides as the .pptx, viewable right in the browser — arrow keys or the buttons below to move through it.</p>
+
+      <div class="deck-toolbar">
+        <div class="deck-nav">
+          <button class="deck-btn" id="deck-prev" aria-label="Previous slide">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <span class="deck-count"><span id="deck-current">1</span> / <span id="deck-total">9</span></span>
+          <button class="deck-btn" id="deck-next" aria-label="Next slide">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+        <a class="btn btn-primary" href="assets/Portage-AI-Scoping-Pack.pptx" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+          Download .pptx
+        </a>
+      </div>
+
+      <div class="deck-stage" id="deck-stage">
+
+        <div class="slide active">
+          <p class="slide-kicker">Case Study — AI Agent Engineer</p>
+          <h2 class="slide-title" style="font-size:2.6em;">Portage AI</h2>
+          <p style="font-size:1.15em;max-width:32ch;">An agentic operations layer for freight &amp; logistics teams</p>
+          <div class="pill-row">
+            <span class="pill">Roadmap</span><span class="pill">Top 3 agentic functions</span><span class="pill">Scoping pack</span><span class="pill">Interactive prototype</span><span class="pill">GitHub repo</span>
+          </div>
+          <div class="slide-foot"><span>Prepared for Teoh Capital / SIMBA</span><span>Dijae Dadula · September 2026</span></div>
+        </div>
+
+        <div class="slide paper">
+          <p class="slide-kicker">Scope</p>
+          <h2 class="slide-title">Why I built a freight operations copilot</h2>
+          <div class="slide-body">
+            <p>The brief fixes the domain — an AI-first agentic logistics app. "Logistics" is broad enough to hide the real question, so I narrowed this POC to one sharp vertical instead of a generic tracker.</p>
+            <div class="grid2" style="height:auto;">
+              <div class="s-card">
+                <h4>The brief</h4>
+                <ul>
+                  <li>Define the product roadmap</li>
+                  <li>Identify the top 3 agentic functions</li>
+                  <li>Provide a scoping pack</li>
+                  <li>Build a basic, interactive prototype</li>
+                  <li>Include a GitHub repository</li>
+                </ul>
+              </div>
+              <div class="s-card" style="background:var(--navy);color:#fff;border-color:var(--navy);">
+                <h4>The read</h4>
+                <p style="font-size:.95em;">I narrowed this to a freight/parcel operations copilot — the sharpest small system to prove exactly what this role is testing for:</p>
+                <div class="pill-row">
+                  <span class="pill">Tool use</span><span class="pill">Planning</span><span class="pill">RAG</span><span class="pill">Guardrails</span><span class="pill">HITL</span><span class="pill">Evals</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-foot"><span></span><span>2</span></div>
+        </div>
+
+        <div class="slide paper">
+          <p class="slide-kicker">Product roadmap</p>
+          <h2 class="slide-title">Now, Next, Later — paced by evidence, not a calendar</h2>
+          <div class="slide-body grid3">
+            <div class="s-card">
+              <span class="s-tag" style="color:var(--accent);">① NOW · this POC</span>
+              <p>Prove the agents reason correctly on realistic scenarios, with guardrails, before touching a live system.</p>
+              <ul><li>Ship the interactive prototype</li><li>Define tool contracts for all 3 agents</li><li>~20–30 golden eval scenarios / agent</li></ul>
+              <p style="margin-top:.6em;"><b>Exit —</b> eval results + reviewer feedback justify a real pilot.</p>
+            </div>
+            <div class="s-card">
+              <span class="s-tag" style="color:var(--warn);">② NEXT · one design partner</span>
+              <p>Replace mocked tools with real integrations on one contained lane — human approves every action.</p>
+              <ul><li>Wire real TMS / carrier / EDI APIs</li><li>Tune guardrail thresholds on real decisions</li><li>Track cost + latency, not just accuracy</li></ul>
+              <p style="margin-top:.6em;"><b>Exit —</b> agent recs match a human ops lead ≥90% of the time.</p>
+            </div>
+            <div class="s-card">
+              <span class="s-tag" style="color:var(--purple);">③ LATER · expand autonomy</span>
+              <p>Turn on auto-execution for guardrail-cleared paths; widen from one lane to the full book of business.</p>
+              <ul><li>Auto-execute only what Next proved safe</li><li>Per-account guardrail tuning</li><li>Standing eval regression suite</li></ul>
+              <p style="margin-top:.6em;"><b>Exit —</b> paced per-surface by trust earned in Next.</p>
+            </div>
+          </div>
+          <div class="slide-foot"><span></span><span>3</span></div>
+        </div>
+
+        <div class="slide">
+          <p class="slide-kicker" style="color:#7fd8e0;">The top 3 agentic functions</p>
+          <h2 class="slide-title">One shipment, three agents, one human approval queue</h2>
+          <div class="slide-body grid3">
+            <div class="s-card">
+              <span class="s-tag" style="color:#7fd8e0;">L · Lane Agent</span>
+              <p>Books shipments: parses the request, ranks compliant carriers against live rates and routing rules, books or escalates.</p>
+              <ul><li>Tool use: rates &amp; booking APIs</li><li>Guardrail: rate-variance cap</li><li>HITL: escalates above threshold</li></ul>
+            </div>
+            <div class="s-card">
+              <span class="s-tag" style="color:#e3ab41;">W · Watch Agent</span>
+              <p>Monitors in-transit shipments: detects exceptions, diagnoses cause, proposes ranked remediation options.</p>
+              <ul><li>Tool use: tracking &amp; EDI feeds</li><li>Guardrail: cost-impact cap</li><li>HITL: never auto-cancels/claims</li></ul>
+            </div>
+            <div class="s-card">
+              <span class="s-tag" style="color:#b79ce8;">D · Doc &amp; Comms Agent</span>
+              <p>Reconciles paperwork against the shipment record and drafts plain-language customer updates.</p>
+              <ul><li>Tool use: document extraction</li><li>Guardrail: materiality threshold</li><li>HITL: approves before send</li></ul>
+            </div>
+          </div>
+          <div class="slide-foot"><span></span><span>4</span></div>
+        </div>
+
+        <div class="slide paper">
+          <p class="slide-kicker">Agent design</p>
+          <h2 class="slide-title">Same pattern, three agents</h2>
+          <div class="slide-body" style="overflow:auto;">
+            <table class="slide-table">
+              <tr><th></th><th>Lane Agent</th><th>Watch Agent</th><th>Doc &amp; Comms Agent</th></tr>
+              <tr><td><b>Trigger</b></td><td>New shipment request</td><td>Tracking / EDI event</td><td>Document received</td></tr>
+              <tr><td><b>Tools</b></td><td>Rates · compliance · booking</td><td>Tracking · alt-routing · remediation</td><td>Extraction · diff · send</td></tr>
+              <tr><td><b>Memory</b></td><td>Account routing preferences</td><td>Lane delay history</td><td>Full document trail</td></tr>
+              <tr><td><b>Retrieval</b></td><td>Account routing rules</td><td>Customs &amp; SLA playbooks</td><td>Account tone &amp; comms history</td></tr>
+              <tr><td><b>Guardrail</b></td><td>Rate variance &gt; 15%</td><td>Cost impact &gt; $250 / customs</td><td>Discrepancy &gt; materiality %</td></tr>
+              <tr><td><b>HITL</b></td><td>Escalates above threshold</td><td>Auto-fixes low risk only</td><td>Approves every send</td></tr>
+            </table>
+          </div>
+          <div class="slide-foot"><span></span><span>5</span></div>
+        </div>
+
+        <div class="slide paper">
+          <p class="slide-kicker">System architecture</p>
+          <h2 class="slide-title">One pattern, shared memory, one approval queue</h2>
+          <div class="slide-body grid3">
+            <div class="s-card">
+              <h4 style="font-size:1em;">Triggers</h4>
+              <ul><li>New shipment request</li><li>Tracking / EDI event</li><li>Document received</li></ul>
+            </div>
+            <div class="s-card" style="background:var(--navy);color:#fff;border-color:var(--navy);">
+              <h4 style="font-size:1em;">Orchestrator</h4>
+              <p style="font-size:.85em;font-style:italic;">plan → act → observe → escalate-or-continue</p>
+              <ul><li>Lane Agent</li><li>Watch Agent</li><li>Doc &amp; Comms Agent</li></ul>
+            </div>
+            <div class="s-card">
+              <h4 style="font-size:1em;">Tools &amp; shared state</h4>
+              <ul><li>Carrier rate &amp; booking API</li><li>Tracking / EDI feed</li><li>Customs &amp; policy RAG store</li><li>Shipment memory · approval queue · audit log</li></ul>
+            </div>
+          </div>
+          <p style="margin-top:.8em;font-size:.85em;color:var(--ink-muted);">Nothing here is a capability I invented for the demo — every mocked tool call maps to a named real integration point, so getting from this POC to a pilot is a list of integrations, not a redesign.</p>
+          <div class="slide-foot"><span></span><span>6</span></div>
+        </div>
+
+        <div class="slide paper">
+          <p class="slide-kicker">Trust, by design</p>
+          <h2 class="slide-title">Guardrails ops can see, and an eval pipeline that proves it works</h2>
+          <div class="slide-body grid2">
+            <div class="s-card">
+              <h4 style="font-size:1em;">Guardrails</h4>
+              <ul>
+                <li>Lane Agent — rate variance <b>15%</b></li>
+                <li>Watch Agent — cost cap <b>$250</b></li>
+                <li>Doc Agent — materiality <b>1.5%</b></li>
+              </ul>
+              <p style="font-size:.85em;font-style:italic;margin-top:.6em;">Customs / regulatory changes always require human sign-off, regardless of threshold.</p>
+            </div>
+            <div class="s-card">
+              <h4 style="font-size:1em;">How I'd evaluate it</h4>
+              <ul>
+                <li>Golden scenarios, ~20–30 per agent</li>
+                <li>Rule-based checks first</li>
+                <li>LLM-as-judge for the rest</li>
+                <li>Production shadow metrics from real approve/reject calls</li>
+              </ul>
+            </div>
+          </div>
+          <div class="slide-foot"><span></span><span>7</span></div>
+        </div>
+
+        <div class="slide">
+          <p class="slide-kicker" style="color:#7fd8e0;">Interactive prototype</p>
+          <h2 class="slide-title">A working console, not a mockup</h2>
+          <div class="slide-body">
+            <ul style="font-size:1em;line-height:1.9;">
+              <li>Click any shipment — trace, tool calls, and guardrail checks are real DOM state, not a static image</li>
+              <li>Approve or reject an escalation and watch the queue, stat tiles, and activity log update live</li>
+              <li>Edit the drafted customer email inline before sending</li>
+              <li>Drag the guardrail sliders to see the governance surface an ops lead — not an engineer — would use</li>
+            </ul>
+            <p style="margin-top:.8em;">See it live in the <b>Part 1</b> tab of this hub, or open it full-screen from there.</p>
+          </div>
+          <div class="slide-foot"><span></span><span>8</span></div>
+        </div>
+
+        <div class="slide">
+          <p class="slide-kicker" style="color:#7fd8e0;">Case Study — Part 1</p>
+          <h2 class="slide-title">What's included</h2>
+          <div class="slide-body">
+            <ul style="font-size:1.05em;line-height:2;">
+              <li><b>Product roadmap</b> — Now / Next / Later, paced by evidence</li>
+              <li><b>Top 3 agentic functions</b> — Lane, Watch, Doc &amp; Comms</li>
+              <li><b>Scoping pack</b> — this deck</li>
+              <li><b>Interactive prototype</b> — no install, no API keys</li>
+              <li><b>GitHub repository</b> — full source, docs, and eval plan</li>
+            </ul>
+          </div>
+          <div class="slide-foot"><span>Dijae Dadula · dijaedadula@gmail.com</span><span>9</span></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  const PASSCODE = "teohcapital";
+  const gate = document.getElementById("gate");
+  const shell = document.getElementById("shell");
+  const form = document.getElementById("gate-form");
+  const input = document.getElementById("gate-input");
+  const error = document.getElementById("gate-error");
+
+  function unlock(){
+    gate.hidden = true;
+    shell.hidden = false;
+    try { sessionStorage.setItem("hub-unlocked", "1"); } catch(e) {}
+    const frame = document.getElementById("part1-frame");
+    if (frame && frame.src === "about:blank") frame.src = frame.dataset.src;
+  }
+
+  let already = false;
+  try { already = sessionStorage.getItem("hub-unlocked") === "1"; } catch(e) {}
+  if (already) unlock();
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    if (input.value.trim().toLowerCase() === PASSCODE) {
+      error.textContent = "";
+      unlock();
+    } else {
+      error.textContent = "That's not the right access code.";
+      input.value = "";
+      input.focus();
+    }
+  });
+
+  document.getElementById("signout-btn").addEventListener("click", function(){
+    try { sessionStorage.removeItem("hub-unlocked"); } catch(e) {}
+    location.reload();
+  });
+
+  // ---------- nav / view switching ----------
+  const views = ["overview", "part1", "part2", "deck"];
+  function showView(name){
+    views.forEach(v => {
+      document.getElementById("view-" + v).hidden = (v !== name);
+    });
+    document.querySelectorAll(".sb-item[data-view]").forEach(el => {
+      el.classList.toggle("active", el.dataset.view === name);
+    });
+    window.scrollTo(0, 0);
+    if (name === "part1") {
+      const frame = document.getElementById("part1-frame");
+      if (frame && frame.src === "about:blank") frame.src = frame.dataset.src;
+    }
+  }
+  document.querySelectorAll("[data-view]").forEach(el => {
+    el.addEventListener("click", function(e){
+      if (el.tagName === "A") return;
+      showView(el.dataset.view);
+    });
+  });
+
+  // ---------- deck / slide viewer ----------
+  const slides = Array.from(document.querySelectorAll("#deck-stage .slide"));
+  let current = 0;
+  document.getElementById("deck-total").textContent = slides.length;
+  function renderSlide(){
+    slides.forEach((s, i) => s.classList.toggle("active", i === current));
+    document.getElementById("deck-current").textContent = current + 1;
+    document.getElementById("deck-prev").disabled = current === 0;
+    document.getElementById("deck-next").disabled = current === slides.length - 1;
+  }
+  document.getElementById("deck-prev").addEventListener("click", () => { if (current > 0) { current--; renderSlide(); } });
+  document.getElementById("deck-next").addEventListener("click", () => { if (current < slides.length - 1) { current++; renderSlide(); } });
+  document.addEventListener("keydown", function(e){
+    if (document.getElementById("view-deck").hidden) return;
+    if (e.key === "ArrowRight") { if (current < slides.length - 1) { current++; renderSlide(); } }
+    if (e.key === "ArrowLeft") { if (current > 0) { current--; renderSlide(); } }
+  });
+  renderSlide();
+})();
+</script>

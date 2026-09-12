@@ -5,6 +5,10 @@ SIMBA case study.
 
 Dijae · dijaedadula@gmail.com
 
+**👉 [Case Study Hub](https://hub-kappa-two.vercel.app)** — one dashboard with everything below:
+the interactive prototype, the SIMBA write-up, and a presentable version of the deck, all in one
+place. Access-code protected; if you're the hiring team, use the code I sent by email.
+
 - 📊 **Scoping pack (PPT):** `scoping-pack/Portage-AI-Scoping-Pack.pptx`
 - 🖥️ **Interactive prototype:** `prototype/index.html` (open directly in a browser — no server or
   install needed, see [Running the prototype](#running-the-prototype))

@@ -415,7 +415,10 @@
 
   let alreadyUnlocked = false;
   try { alreadyUnlocked = sessionStorage.getItem("portage-ai-unlocked") === "1"; } catch(e) {}
-  if (alreadyUnlocked) unlock();
+  // Lets the hub dashboard embed this app in an iframe without a second passcode
+  // prompt - the raw URL on its own still requires typing the passcode manually.
+  const codeParam = new URLSearchParams(location.search).get("code");
+  if (alreadyUnlocked || (codeParam && codeParam.toLowerCase() === PASSCODE)) unlock();
 
   form.addEventListener("submit", function(e){
     e.preventDefault();
